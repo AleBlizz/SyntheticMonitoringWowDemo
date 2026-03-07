@@ -1,0 +1,37 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: express-app-service
+spec:
+  selector:
+    app: express-app # This connects the Service to the Pods with this label
+  ports:
+    - protocol: TCP
+      port: 80 # The port exposed by the Service internally in the cluster
+      targetPort: 3000 # The port your Express app container is listening on
+  type: LoadBalancer # Use ClusterIP for internal only, LoadBalancer to expose externally (if supported by your cloud)
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: express-app-deployment
+  labels:
+    app: express-app
+spec:
+  replicas: 3 # Number of instances you want running
+  selector:
+    matchLabels:
+      app: express-app
+  template:
+    metadata:
+      labels:
+        app: express-app
+    spec:
+      containers:
+      - name: express-app-container
+        image: alessandrobrofferio273/my-server-synth:v2 # The image you pushed in Step 2
+        ports:
+        - containerPort: 3000 # The port your Express app listens on
+        env:
+        - name: NODE_ENV
+          value: "production"

@@ -1,0 +1,23 @@
+<h1 data-testid="profile-heading">Your Profile</h1>
+
+<% if (success) { %>
+  <div class="toast success" data-testid="profile-success">Profile updated successfully</div>
+<% } %>
+
+<div class="card">
+  <form data-testid="profile-form" method="POST" action="/profile">
+    <div class="form-group">
+      <label for="name">Full Name</label>
+      <input data-testid="profile-name" type="text" id="name" name="name" value="<%= user.name %>">
+    </div>
+    <div class="form-group">
+      <label for="email">Email</label>
+      <input data-testid="profile-email" type="email" id="email" name="email" value="<%= user.email %>">
+    </div>
+    <div class="form-group">
+      <label for="bio">Bio</label>
+      <textarea data-testid="profile-bio" id="bio" name="bio"><%= user.bio %></textarea>
+    </div>
+    <button data-testid="profile-save" type="submit" class="btn btn-primary">Save Changes</button>
+  </form>
+</div>

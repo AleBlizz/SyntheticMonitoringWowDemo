@@ -1,0 +1,12 @@
+heartbeat.monitors:
+  - type: http
+    name: API Health Check
+    id: api-health-lightweight
+    urls:
+      - "http://35.226.244.170/api/health"
+    schedule: "@every 1m"
+    check.response:
+      status: [200]
+      json:
+        - description: check status 
+          expression: 'status == "ok"'

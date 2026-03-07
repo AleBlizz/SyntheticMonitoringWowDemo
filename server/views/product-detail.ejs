@@ -1,0 +1,20 @@
+<a data-testid="back-to-products" href="/products" class="btn btn-outline btn-sm" style="margin-bottom:1.5rem;display:inline-block">&larr; Back to Products</a>
+
+<div class="product-detail">
+  <div class="product-image"><%= product.image %></div>
+  <div>
+    <h1 data-testid="product-detail-name"><%= product.name %></h1>
+    <p data-testid="product-detail-description"><%= product.description %></p>
+    <div class="price" data-testid="product-detail-price">$<%= product.price.toFixed(2) %></div>
+    <div class="category" data-testid="product-detail-category"><%= product.category %></div>
+
+    <form method="POST" action="/cart/add">
+      <input type="hidden" name="productId" value="<%= product.id %>">
+      <div class="quantity-group">
+        <label for="quantity">Qty:</label>
+        <input data-testid="quantity-input" type="number" id="quantity" name="quantity" value="1" min="1" max="99">
+      </div>
+      <button data-testid="add-to-cart-button" type="submit" class="btn btn-success">Add to Cart</button>
+    </form>
+  </div>
+</div>

@@ -1,0 +1,70 @@
+<h1 data-testid="settings-heading">Settings</h1>
+
+<% if (success) { %>
+  <div class="toast success" data-testid="settings-success">Settings saved successfully</div>
+<% } %>
+
+<div class="card">
+  <form data-testid="settings-form" method="POST" action="/settings">
+
+    <div class="settings-section">
+      <h2>Preferences</h2>
+      <div class="toggle-group">
+        <span class="toggle-label">Enable Notifications</span>
+        <label class="toggle-switch">
+          <input data-testid="toggle-notifications" type="checkbox" name="notifications" <%= settings.notifications ? 'checked' : '' %>>
+          <span class="toggle-slider" data-testid="toggle-notifications-slider"></span>
+        </label>
+      </div>
+      <div class="toggle-group">
+        <span class="toggle-label">Dark Mode</span>
+        <label class="toggle-switch">
+          <input data-testid="toggle-darkmode" type="checkbox" name="darkMode" <%= settings.darkMode ? 'checked' : '' %>>
+          <span class="toggle-slider" data-testid="toggle-darkmode-slider"></span>
+        </label>
+      </div>
+    </div>
+
+    <div class="settings-section">
+      <h2>Regional</h2>
+      <div class="form-group">
+        <label for="language">Language</label>
+        <select data-testid="select-language" id="language" name="language">
+          <option value="en" <%= settings.language === 'en' ? 'selected' : '' %>>English</option>
+          <option value="es" <%= settings.language === 'es' ? 'selected' : '' %>>Spanish</option>
+          <option value="fr" <%= settings.language === 'fr' ? 'selected' : '' %>>French</option>
+          <option value="de" <%= settings.language === 'de' ? 'selected' : '' %>>German</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label for="timezone">Timezone</label>
+        <select data-testid="select-timezone" id="timezone" name="timezone">
+          <option value="UTC" <%= settings.timezone === 'UTC' ? 'selected' : '' %>>UTC</option>
+          <option value="America/New_York" <%= settings.timezone === 'America/New_York' ? 'selected' : '' %>>America/New_York</option>
+          <option value="Europe/London" <%= settings.timezone === 'Europe/London' ? 'selected' : '' %>>Europe/London</option>
+          <option value="Asia/Tokyo" <%= settings.timezone === 'Asia/Tokyo' ? 'selected' : '' %>>Asia/Tokyo</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="settings-section">
+      <h2>Email Frequency</h2>
+      <div class="radio-group">
+        <label>
+          <input data-testid="radio-email-daily" type="radio" name="emailFrequency" value="daily" <%= settings.emailFrequency === 'daily' ? 'checked' : '' %>>
+          Daily
+        </label>
+        <label>
+          <input data-testid="radio-email-weekly" type="radio" name="emailFrequency" value="weekly" <%= settings.emailFrequency === 'weekly' ? 'checked' : '' %>>
+          Weekly
+        </label>
+        <label>
+          <input data-testid="radio-email-never" type="radio" name="emailFrequency" value="never" <%= settings.emailFrequency === 'never' ? 'checked' : '' %>>
+          Never
+        </label>
+      </div>
+    </div>
+
+    <button data-testid="settings-save" type="submit" class="btn btn-primary" style="margin-top:1rem">Save Settings</button>
+  </form>
+</div>

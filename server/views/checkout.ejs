@@ -1,0 +1,93 @@
+<% if (confirmation) { %>
+  <div class="confirmation" data-testid="order-confirmation">
+    <div class="checkmark">&#10003;</div>
+    <h2 data-testid="order-success">Order Placed Successfully!</h2>
+    <p data-testid="order-number">Order <%= confirmation.orderId %></p>
+    <p style="margin-top:0.5rem;color:var(--text-muted)">Total: $<%= confirmation.total.toFixed(2) %></p>
+    <a href="/dashboard" class="btn btn-primary" style="margin-top:1.5rem">Back to Dashboard</a>
+  </div>
+<% } else { %>
+  <h1 data-testid="checkout-heading">Checkout</h1>
+
+  <div class="step-indicator">
+    <div class="step-dot active" id="dot-1">1</div>
+    <div class="step-dot" id="dot-2">2</div>
+    <div class="step-dot" id="dot-3">3</div>
+  </div>
+
+  <form data-testid="checkout-form" method="POST" action="/checkout">
+    <!-- Step 1: Shipping -->
+    <div class="checkout-step" data-testid="step-shipping" id="step-shipping">
+      <h2>Shipping Information</h2>
+      <div class="form-group">
+        <label for="shippingName">Full Name</label>
+        <input data-testid="shipping-name" type="text" id="shippingName" name="shippingName" placeholder="Full Name">
+      </div>
+      <div class="form-group">
+        <label for="shippingAddress">Address</label>
+        <input data-testid="shipping-address" type="text" id="shippingAddress" name="shippingAddress" placeholder="Address">
+      </div>
+      <div class="form-group">
+        <label for="shippingCity">City</label>
+        <input data-testid="shipping-city" type="text" id="shippingCity" name="shippingCity" placeholder="City">
+      </div>
+      <div class="form-group">
+        <label for="shippingZip">ZIP Code</label>
+        <input data-testid="shipping-zip" type="text" id="shippingZip" name="shippingZip" placeholder="ZIP Code">
+      </div>
+      <button data-testid="next-to-payment" type="button" class="btn btn-primary" onclick="showStep(2)">Continue to Payment</button>
+    </div>
+
+    <!-- Step 2: Payment -->
+    <div class="checkout-step" data-testid="step-payment" id="step-payment" style="display:none">
+      <h2>Payment Information</h2>
+      <div class="form-group">
+        <label for="cardNumber">Card Number</label>
+        <input data-testid="payment-card" type="text" id="cardNumber" name="cardNumber" placeholder="Card Number">
+      </div>
+      <div class="form-group">
+        <label for="expiry">Expiry Date</label>
+        <input data-testid="payment-expiry" type="text" id="expiry" name="expiry" placeholder="MM/YY">
+      </div>
+      <div class="form-group">
+        <label for="cvv">CVV</label>
+        <input data-testid="payment-cvv" type="text" id="cvv" name="cvv" placeholder="CVV">
+      </div>
+      <button data-testid="next-to-review" type="button" class="btn btn-primary" onclick="showStep(3)">Review Order</button>
+    </div>
+
+    <!-- Step 3: Review -->
+    <div class="checkout-step" data-testid="step-review" id="step-review" style="display:none">
+      <h2>Review Your Order</h2>
+      <div data-testid="review-summary" id="review-summary">
+        <table>
+          <thead>
+            <tr><th>Product</th><th>Qty</th><th>Subtotal</th></tr>
+          </thead>
+          <tbody>
+            <% cartItems.forEach(function(item) { %>
+              <tr>
+                <td><%= item.name %></td>
+                <td><%= item.quantity %></td>
+                <td>$<%= (item.price * item.quantity).toFixed(2) %></td>
+              </tr>
+            <% }); %>
+          </tbody>
+        </table>
+        <div class="cart-total">Total: $<%= total.toFixed(2) %></div>
+      </div>
+      <button data-testid="place-order-button" type="submit" class="btn btn-success" style="width:100%;margin-top:1rem">Place Order</button>
+    </div>
+  </form>
+
+  <script>
+    function showStep(stepNum) {
+      document.getElementById('step-shipping').style.display = stepNum === 1 ? 'block' : 'none';
+      document.getElementById('step-payment').style.display = stepNum === 2 ? 'block' : 'none';
+      document.getElementById('step-review').style.display = stepNum === 3 ? 'block' : 'none';
+      document.getElementById('dot-1').classList.toggle('active', stepNum >= 1);
+      document.getElementById('dot-2').classList.toggle('active', stepNum >= 2);
+      document.getElementById('dot-3').classList.toggle('active', stepNum >= 3);
+    }
+  </script>
+<% } %>

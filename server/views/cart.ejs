@@ -1,0 +1,52 @@
+<h1 data-testid="cart-heading">Your Cart</h1>
+
+<% if (!cartItems || cartItems.length === 0) { %>
+  <div class="empty-state">
+    <div class="icon">🛒</div>
+    <p data-testid="cart-empty">Your cart is empty</p>
+    <a href="/products" class="btn btn-primary" style="margin-top:1rem">Browse Products</a>
+  </div>
+<% } else { %>
+  <div class="table-wrapper">
+    <table data-testid="cart-table">
+      <thead>
+        <tr>
+          <th>Product</th>
+          <th>Price</th>
+          <th>Quantity</th>
+          <th>Subtotal</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        <% cartItems.forEach(function(item) { %>
+          <tr data-testid="cart-item-<%= item.productId %>">
+            <td data-testid="cart-item-name-<%= item.productId %>"><%= item.name %></td>
+            <td data-testid="cart-item-price-<%= item.productId %>">$<%= item.price.toFixed(2) %></td>
+            <td>
+              <form method="POST" action="/cart/update" style="display:flex;gap:0.25rem;align-items:center">
+                <input type="hidden" name="productId" value="<%= item.productId %>">
+                <input data-testid="cart-item-quantity-<%= item.productId %>" type="number" name="quantity" value="<%= item.quantity %>" min="1" max="99">
+                <button data-testid="cart-item-update-<%= item.productId %>" type="submit" class="btn btn-outline btn-sm">Update</button>
+              </form>
+            </td>
+            <td>$<%= (item.price * item.quantity).toFixed(2) %></td>
+            <td>
+              <form method="POST" action="/cart/remove">
+                <input type="hidden" name="productId" value="<%= item.productId %>">
+                <button data-testid="cart-item-remove-<%= item.productId %>" type="submit" class="btn btn-danger btn-sm">Remove</button>
+              </form>
+            </td>
+          </tr>
+        <% }); %>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="cart-total" data-testid="cart-total">Total: $<%= total.toFixed(2) %></div>
+
+  <div class="cart-actions">
+    <a href="/products" class="btn btn-outline">Continue Shopping</a>
+    <a data-testid="checkout-button" href="/checkout" class="btn btn-success">Proceed to Checkout</a>
+  </div>
+<% } %>

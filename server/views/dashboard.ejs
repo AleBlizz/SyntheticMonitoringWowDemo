@@ -1,0 +1,24 @@
+<h1 data-testid="dashboard-heading">Welcome, <%= user.name %></h1>
+<p data-testid="welcome-message">Welcome back to your dashboard. Here's a quick overview.</p>
+
+<div class="summary-grid" data-testid="summary-cards">
+  <div class="summary-card" data-testid="card-products">
+    <div class="number"><%= productCount %></div>
+    <div class="label">Products Available</div>
+  </div>
+  <div class="summary-card" data-testid="card-cart">
+    <div class="number"><%= cartCount %></div>
+    <div class="label">Items in Cart</div>
+  </div>
+  <div class="summary-card" data-testid="card-orders">
+    <div class="number"><%= orderCount %></div>
+    <div class="label">Orders Completed</div>
+  </div>
+</div>
+
+<h2>Quick Links</h2>
+<div class="quick-links" data-testid="quick-links">
+  <a href="/products">Browse Products</a>
+  <a href="/profile">Edit Profile</a>
+  <a href="/settings">Settings</a>
+</div>

@@ -1,0 +1,40 @@
+<h1 data-testid="products-heading">Products</h1>
+
+<form class="filter-bar" method="GET" action="/products">
+  <input data-testid="search-input" type="text" name="search" placeholder="Search products..." value="<%= search %>">
+  <select data-testid="category-filter" name="category">
+    <option value="">All Categories</option>
+    <% categories.forEach(function(cat) { %>
+      <option value="<%= cat %>" <%= category === cat ? 'selected' : '' %>><%= cat %></option>
+    <% }); %>
+  </select>
+  <button data-testid="search-button" type="submit" class="btn btn-primary">Search</button>
+</form>
+
+<div class="results-info">
+  <span data-testid="results-count"><%= allProducts.length %> products found</span>
+</div>
+
+<div class="product-grid" data-testid="product-list">
+  <% products.forEach(function(product) { %>
+    <div class="product-card" data-testid="product-card-<%= product.id %>">
+      <div class="product-image"><%= product.image %></div>
+      <h3 data-testid="product-name-<%= product.id %>"><%= product.name %></h3>
+      <div class="price" data-testid="product-price-<%= product.id %>">$<%= product.price.toFixed(2) %></div>
+      <div class="category"><%= product.category %></div>
+      <a data-testid="product-link-<%= product.id %>" href="/products/<%= product.id %>" class="btn btn-outline btn-sm">View Details</a>
+    </div>
+  <% }); %>
+</div>
+
+<% if (allProducts.length > 0) { %>
+  <div class="pagination" data-testid="pagination">
+    <% if (page > 1) { %>
+      <a data-testid="page-prev" href="/products?search=<%= search %>&category=<%= category %>&page=<%= page - 1 %>">Previous</a>
+    <% } %>
+    <span data-testid="page-info" class="current">Page <%= page %> of <%= totalPages %></span>
+    <% if (page < totalPages) { %>
+      <a data-testid="page-next" href="/products?search=<%= search %>&category=<%= category %>&page=<%= page + 1 %>">Next</a>
+    <% } %>
+  </div>
+<% } %>

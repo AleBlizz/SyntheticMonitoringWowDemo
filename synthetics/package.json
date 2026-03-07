@@ -1,0 +1,14 @@
+{
+  "name": "synthetic-monitoring-tests",
+  "version": "1.0.0",
+  "description": "Elastic Synthetic Monitoring journey scripts",
+  "scripts": {
+    "test": "npx @elastic/synthetics journeys",
+    "push": "npx @elastic/synthetics push"
+  },
+  "dependencies": {
+    "@elastic/synthetics": "^1.12.0",
+    "dotenv": "^17.3.1"
+  },
+  "private": true
+}

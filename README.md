@@ -322,9 +322,3 @@ curl "http://localhost:3000/slow?delay=2000"
 | **Alerting** | Alert on synthetic failures, APM error rate spikes, or log anomalies — one rule engine |
 
 All signals share the same trace context, so navigating from a failed synthetic step to the backend trace to the application log for that exact request is a single click.
-
----
-
-## Detailed Setup Guide
-
-For the full setup walkthrough including Elastic Cloud cluster configuration, private location setup, and OpenTelemetry Operator installation, see [GUIDE.md](GUIDE.md).

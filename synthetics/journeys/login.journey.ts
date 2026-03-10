@@ -1,5 +1,6 @@
 import { journey, step, monitor, expect } from '@elastic/synthetics';
 
+
 journey('Login Journey', ({ page, params }) => {
   monitor.use({
     id: 'login-journey',
@@ -9,7 +10,21 @@ journey('Login Journey', ({ page, params }) => {
   });
 
   step('Navigate to login page', async () => {
+    
+
+    await page.route('**/login', route => {
+     
+     
+      return route.continue({
+        headers: {
+          ...route.request().headers(),
+          'x-elastic-synthetic': 'login-journey',
+        },
+      });
+    });
+  
     await page.goto(`${params.url}/login`);
+  
     const heading = await page.locator('[data-testid="login-heading"]');
     expect(await heading.textContent()).toBe('Login');
   });

@@ -18,7 +18,7 @@ metadata:
   labels:
     app: express-app
 spec:
-  replicas: 3 # Number of instances you want running
+  replicas: 1 # Number of instances you want running
   selector:
     matchLabels:
       app: express-app
@@ -26,10 +26,12 @@ spec:
     metadata:
       labels:
         app: express-app
+      annotations:
+        instrumentation.opentelemetry.io/inject-nodejs: "opentelemetry-operator-system/elastic-instrumentation"
     spec:
       containers:
       - name: express-app-container
-        image: alessandrobrofferio273/my-server-synth:v2 # The image you pushed in Step 2
+        image: alessandrobrofferio273/my-server-synth:v8
         ports:
         - containerPort: 3000 # The port your Express app listens on
         env:

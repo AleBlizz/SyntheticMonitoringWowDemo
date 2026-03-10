@@ -35,6 +35,16 @@ const appMetrics = {
   startedAt: new Date().toISOString(),
 };
 
+// --- Synthetic header middleware ---
+// This adds a 'synthetics.monitor.id' attribute to the active span if the request has the 'x-elastic-synthetic' header.
+app.use((req, _res, next) => {
+  const span = trace.getActiveSpan();
+  if (span && req.headers['x-elastic-synthetic']) {
+    span.setAttribute('synthetics.monitor.id', req.headers['x-elastic-synthetic']);
+  }
+  next();
+});
+
 // --- Metrics-tracking middleware ---
 app.use((req, res, next) => {
   const start = Date.now();

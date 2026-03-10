@@ -42,7 +42,7 @@ export default (): SyntheticsConfig => {
     },
     project: {
       id: 'synthetic-monitoring-demo',
-      url: process.env.KIBANA_URL || 'https://playgorund-v2.kb.europe-west9.gcp.elastic-cloud.com',
+      url: process.env.KIBANA_URL || 'https://o11y-ale-demo-a95248.kb.europe-west1.gcp.elastic.cloud',
       space: 'default',
     },
   };

@@ -1,6 +1,6 @@
 # Elastic Synthetic Monitoring + EDOT Demo
 
-A complete, production-ready demo showcasing **Elastic's unified observability** powered by **OpenTelemetry** — combining Synthetic Monitoring, APM traces, and correlated logs, all collected via the **Elastic Distribution of OpenTelemetry (EDOT)**.
+A complete  demo showcasing **Elastic's unified observability** powered by **OpenTelemetry** — combining Synthetic Monitoring, APM traces, and correlated logs, all collected via the **Elastic Distribution of OpenTelemetry (EDOT)**.
 
 ---
 
@@ -51,7 +51,7 @@ annotations:
 That annotation is the entire instrumentation configuration. The operator injects EDOT as an init container before the app starts, which:
 1. Installs the EDOT Node.js agent into the pod
 2. Sets `NODE_OPTIONS=--require @elastic/opentelemetry-node` so it loads before any application code
-3. Configures OTLP export to Elastic's APM Server endpoint via environment variables
+3. Configures OTLP export to Elastic's MOTEL endpoint via environment variables
 
 The application (`app.edot.js`) uses only the **vendor-neutral `@opentelemetry/api`** package — the zero-dependency OTel API — purely to read the active trace context for log enrichment:
 
@@ -75,18 +75,6 @@ res.on('finish', () => {
 
 The spans themselves — HTTP transactions, route handlers, async operations — are all captured automatically by EDOT. No `apm.startTransaction()`, no manual span creation.
 
-### EDOT vs. elastic-apm-node (the difference in this repo)
-
-This repo contains both approaches for comparison:
-
-| File | Instrumentation | Spans |
-|------|----------------|-------|
-| `server/app.js` | `elastic-apm-node` (proprietary) | Manual span creation in route handlers |
-| `server/app.edot.js` | EDOT via OTel Operator (zero-code) | Fully automatic — no code changes |
-
-The Docker image runs `app.edot.js`. The K8s annotation handles the rest.
-
----
 
 ## Architecture
 
@@ -118,8 +106,6 @@ The Docker image runs `app.edot.js`. The K8s annotation handles the rest.
                                                │  13 journeys         │
                                                └──────────────────────┘
 ```
-
-The synthetic runner injects **W3C `traceparent` headers** into every request. EDOT on the server picks them up and links the synthetic test run to the exact backend trace — giving end-to-end visibility from user journey → HTTP request → async operation, all in Kibana.
 
 ---
 
@@ -249,8 +235,8 @@ The `Instrumentation` CR configures EDOT to export to your Elastic Cloud OTLP en
 
 ```bash
 cd server
-docker build -t <your-registry>/my-server-synth:v7 --platform linux/amd64 .
-docker push <your-registry>/my-server-synth:v7
+docker build -t <your-registry>/my-server-synth:vx --platform linux/amd64 .
+docker push <your-registry>/my-server-synth:vx
 ```
 
 Update the image reference in [Kubernetes/deployment-app.yaml](Kubernetes/deployment-app.yaml).
@@ -263,7 +249,7 @@ Update the image reference in [Kubernetes/deployment-app.yaml](Kubernetes/deploy
 
 | Variable | Description | Example |
 |----------|-------------|---------|
-| `OTEL_EXPORTER_OTLP_ENDPOINT` | Elastic OTLP endpoint | `https://...apm.elastic-cloud.com` |
+| `OTEL_EXPORTER_OTLP_ENDPOINT` | Elastic OTLP endpoint | `https://..elastic-cloud.com` |
 | `OTEL_EXPORTER_OTLP_HEADERS` | Auth header | `Authorization=Bearer <token>` |
 | `OTEL_SERVICE_NAME` | Service name in APM | `synth-monitor-server` |
 | `NODE_OPTIONS` | Load EDOT agent | `--require @elastic/opentelemetry-node` |
@@ -275,7 +261,7 @@ Update the image reference in [Kubernetes/deployment-app.yaml](Kubernetes/deploy
 | Variable | Description | Example |
 |----------|-------------|---------|
 | `MY_ENV` | Target environment | `development` / `production` |
-| `SYNTH_TARGET_URL` | Override monitor target URL | `http://35.226.244.170` |
+| `SYNTH_TARGET_URL` | Override monitor target URL |
 | `SYNTH_USERNAME` | Test account username | `testuser` |
 | `SYNTH_PASSWORD` | Test account password | `testpass123` |
 | `SYNTHETICS_API_KEY` | Kibana API key (for push) | Generated in Kibana |
@@ -318,18 +304,6 @@ curl "http://localhost:3000/slow?delay=2000"
 - **Full auto-instrumentation**: EDOT captures every HTTP transaction, Express route, and async operation automatically
 - **Standards-based**: all telemetry uses OTLP. Switch backends without touching your application
 - **Distributed tracing**: W3C `traceparent` propagation works across service boundaries out of the box
-
-### The Unique Elastic Differentiator: Trace Correlation with Synthetics
-
-> **When a synthetic journey runs, Elastic automatically injects a W3C `traceparent` header into every HTTP request. EDOT on the server picks this up and links the synthetic test run to the exact backend trace in Elasticsearch.**
-
-In Kibana you can:
-1. Open a synthetic test result (pass or fail)
-2. Click through directly to the backend APM trace for that exact run
-3. See the full span waterfall — HTTP handler, async timings, any downstream calls
-4. View structured logs from that exact request, filtered by `trace.id`
-
-No manual wiring. No log shippers to configure. Everything correlates automatically because it all goes through the same OTLP pipeline.
 
 ### Logs
 

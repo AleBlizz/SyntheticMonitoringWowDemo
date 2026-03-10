@@ -3,7 +3,9 @@ import { journey, step, monitor, expect } from '@elastic/synthetics';
 journey('API Health Journey', ({ params, request }) => {
   monitor.use({
     id: 'api-health-journey',
-    schedule: 5
+    schedule: 5,
+    tags: ['api', 'health-check', 'infrastructure'],
+    screenshots: 'on',
   });
 
   step('Check API health endpoint', async () => {

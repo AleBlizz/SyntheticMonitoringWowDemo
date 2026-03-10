@@ -4,6 +4,8 @@ journey('Performance Journey', ({ page, params }) => {
   monitor.use({
     id: 'performance-journey',
     schedule: 10,
+    tags: ['performance', 'latency', 'sla-tracking'],
+    screenshots: 'only-on-failure',
   });
 
   step('Load slow page with 2-second delay', async () => {

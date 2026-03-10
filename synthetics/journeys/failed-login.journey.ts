@@ -4,6 +4,8 @@ journey('Failed Login Journey', ({ page, params }) => {
   monitor.use({
     id: 'failed-login-journey',
     schedule: 10,
+    tags: ['auth', 'error-handling', 'negative-test'],
+    screenshots: 'only-on-failure',
   });
 
   step('Navigate to login page', async () => {

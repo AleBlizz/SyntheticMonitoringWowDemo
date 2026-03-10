@@ -4,6 +4,8 @@ journey('Profile Edit Journey', ({ page, params }) => {
   monitor.use({
     id: 'profile-edit-journey',
     schedule: 10,
+    tags: ['user-management', 'form-submission'],
+    screenshots: 'only-on-failure',
   });
 
   step('Login', async () => {

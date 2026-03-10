@@ -1,0 +1,137 @@
+<h1 data-testid="observability-heading">Observability</h1>
+<p style="color:var(--text-muted);margin-bottom:1.5rem">
+  This page demonstrates Elastic's unique synthetic-to-APM trace correlation.
+  Every request from a synthetic monitor carries a <code>traceparent</code> header
+  that links the monitor run to backend APM traces in Kibana.
+</p>
+
+<!-- Metrics Panel -->
+<div class="summary-grid" data-testid="metrics-panel">
+  <div class="summary-card">
+    <div class="number" data-testid="request-count">-</div>
+    <div class="label">Total Requests</div>
+  </div>
+  <div class="summary-card">
+    <div class="number" data-testid="error-count">-</div>
+    <div class="label">Errors</div>
+  </div>
+  <div class="summary-card">
+    <div class="number" data-testid="avg-response-time">-</div>
+    <div class="label">Avg Response (ms)</div>
+  </div>
+  <div class="summary-card">
+    <div class="number" data-testid="memory-usage">-</div>
+    <div class="label">Heap Used (MB)</div>
+  </div>
+</div>
+
+<!-- Trace Demo Section -->
+<div class="card" style="margin-bottom:1.5rem">
+  <h2>Trace Correlation Demo</h2>
+  <p style="margin-bottom:1rem;color:var(--text-muted)">
+    Click the button below to call <code>/api/trace-demo</code>. The backend creates
+    multiple APM spans (DB query, compute, external call). In Kibana APM, you'll see
+    the full waterfall linked to the synthetic monitor run.
+  </p>
+  <button data-testid="trace-demo-button" class="btn btn-primary" onclick="runTraceDemo()">
+    Run Trace Demo
+  </button>
+  <div data-testid="trace-result" id="trace-result" style="margin-top:1rem;display:none">
+    <div class="toast success">
+      <strong>Trace completed!</strong>
+      <div data-testid="trace-id" id="trace-id" style="margin-top:0.5rem;font-family:monospace"></div>
+    </div>
+    <pre data-testid="trace-details" id="trace-details" style="background:var(--bg);padding:1rem;border-radius:var(--radius);overflow-x:auto;margin-top:0.75rem;font-size:0.85rem"></pre>
+  </div>
+</div>
+
+<!-- Feature Comparison -->
+<div class="card">
+  <h2 data-testid="comparison-heading">Why This Matters — Elastic vs Competitors</h2>
+  <div class="table-wrapper">
+    <table data-testid="comparison-table">
+      <thead>
+        <tr>
+          <th>Capability</th>
+          <th>Elastic</th>
+          <th>Datadog</th>
+          <th>Checkly / k6</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Synthetic → Backend APM trace linking</td>
+          <td><strong>Native, automatic</strong></td>
+          <td>Limited</td>
+          <td>Not available</td>
+        </tr>
+        <tr>
+          <td>Logs correlated with trace ID</td>
+          <td><strong>Built-in</strong></td>
+          <td>Separate config</td>
+          <td>Not available</td>
+        </tr>
+        <tr>
+          <td>Data queryable in search engine</td>
+          <td><strong>Elasticsearch (KQL)</strong></td>
+          <td>Proprietary</td>
+          <td>N/A</td>
+        </tr>
+        <tr>
+          <td>Private locations on your infra</td>
+          <td><strong>Fleet-based Agent</strong></td>
+          <td>Yes</td>
+          <td>Limited</td>
+        </tr>
+        <tr>
+          <td>SLOs from synthetic data</td>
+          <td><strong>Native SLO UI</strong></td>
+          <td>Yes</td>
+          <td>Not available</td>
+        </tr>
+        <tr>
+          <td>Open-source test framework</td>
+          <td><strong>Playwright</strong></td>
+          <td>Proprietary</td>
+          <td>Playwright / k6</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<script>
+// Fetch live metrics on page load
+(async function loadMetrics() {
+  try {
+    const res = await fetch('/api/metrics');
+    const data = await res.json();
+    document.querySelector('[data-testid="request-count"]').textContent = data.requestCount;
+    document.querySelector('[data-testid="error-count"]').textContent = data.errorCount;
+    document.querySelector('[data-testid="avg-response-time"]').textContent = data.avgResponseTime;
+    document.querySelector('[data-testid="memory-usage"]').textContent = data.memory.heapUsedMB;
+  } catch (e) {
+    console.error('Failed to load metrics', e);
+  }
+})();
+
+// Trigger trace demo
+async function runTraceDemo() {
+  const btn = document.querySelector('[data-testid="trace-demo-button"]');
+  btn.textContent = 'Running...';
+  btn.disabled = true;
+  try {
+    const res = await fetch('/api/trace-demo');
+    const data = await res.json();
+    document.getElementById('trace-result').style.display = 'block';
+    document.getElementById('trace-id').textContent =
+      'Trace ID: ' + data.trace.traceId + ' | Transaction: ' + data.trace.transactionId;
+    document.getElementById('trace-details').textContent = JSON.stringify(data, null, 2);
+    btn.textContent = 'Run Again';
+  } catch (e) {
+    btn.textContent = 'Error — Retry';
+    console.error(e);
+  }
+  btn.disabled = false;
+}
+</script>

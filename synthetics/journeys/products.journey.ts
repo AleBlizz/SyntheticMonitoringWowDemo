@@ -4,6 +4,8 @@ journey('Product Search Journey', ({ page, params }) => {
   monitor.use({
     id: 'product-search-journey',
     schedule: 10,
+    tags: ['e-commerce', 'search', 'catalog'],
+    screenshots: 'on',
   });
 
   step('Navigate to products page', async () => {

@@ -4,6 +4,8 @@ journey('Add to Cart Journey', ({ page, params }) => {
   monitor.use({
     id: 'add-to-cart-journey',
     schedule: 10,
+    tags: ['e-commerce', 'cart', 'critical-path'],
+    screenshots: 'on',
   });
 
   step('Login', async () => {

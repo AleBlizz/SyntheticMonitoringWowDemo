@@ -4,6 +4,8 @@ journey('Navigation Journey', ({ page, params }) => {
   monitor.use({
     id: 'navigation-journey',
     schedule: 10,
+    tags: ['navigation', 'smoke-test', 'critical-path'],
+    screenshots: 'on',
   });
 
   step('Login', async () => {

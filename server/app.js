@@ -1,3 +1,17 @@
+// ============================================================
+// Elastic APM — MUST be the very first require
+// When a synthetic monitor sends a W3C traceparent header,
+// the APM agent automatically picks it up and creates a child
+// transaction, linking the synthetic run to the backend trace.
+// ============================================================
+//const apm = require('elastic-apm-node').start({
+//  serviceName: process.env.APM_SERVICE_NAME || 'synth-monitor-server',
+//  serverUrl:   process.env.APM_SERVER_URL   || 'http://localhost:8200',
+//  secretToken: process.env.APM_SECRET_TOKEN || '',
+//  environment: process.env.NODE_ENV         || 'development',
+//  active:      process.env.APM_ACTIVE !== 'false',
+//});
+
 const express = require('express');
 const session = require('express-session');
 const expressLayouts = require('express-ejs-layouts');
@@ -23,6 +37,46 @@ app.use(
     saveUninitialized: false,
   })
 );
+
+// ============================================================
+// In-memory application metrics
+// Tracks request counts, errors, and response times so the
+// /api/metrics endpoint can expose them. Competitors can't
+// natively correlate these with synthetic monitor runs.
+// ============================================================
+const appMetrics = {
+  requestCount: 0,
+  errorCount: 0,
+  totalResponseTime: 0,
+  startedAt: new Date().toISOString(),
+};
+
+// --- Metrics-tracking middleware ---
+app.use((req, res, next) => {
+  const start = Date.now();
+  appMetrics.requestCount++;
+
+  res.on('finish', () => {
+    const duration = Date.now() - start;
+    appMetrics.totalResponseTime += duration;
+    if (res.statusCode >= 400) appMetrics.errorCount++;
+
+    // ── Structured logging with APM trace context ──
+    // Every log line carries the trace.id and transaction.id
+    // so Kibana can correlate logs ↔ traces ↔ synthetic runs.
+    const traceIds = apm.currentTraceIds;
+    console.log(JSON.stringify({
+      '@timestamp': new Date().toISOString(),
+      level: res.statusCode >= 400 ? 'error' : 'info',
+      message: `${req.method} ${req.originalUrl} ${res.statusCode} ${duration}ms`,
+      http: { method: req.method, url: req.originalUrl, status_code: res.statusCode },
+      duration_ms: duration,
+      ...traceIds,
+    }));
+  });
+
+  next();
+});
 
 // --- In-memory data ---
 const USERS = {
@@ -124,7 +178,6 @@ app.post('/profile', requireAuth, (req, res) => {
   req.session.user.name = name;
   req.session.user.email = email;
   req.session.user.bio = bio;
-  // Also update the in-memory store
   if (USERS[req.session.user.username]) {
     USERS[req.session.user.username].name = name;
     USERS[req.session.user.username].email = email;
@@ -274,13 +327,121 @@ app.get('/slow', (req, res) => {
   }, delay);
 });
 
-// --- API health ---
+// ============================================================
+// Observability page — Elastic-only differentiator
+// Shows live server metrics and trace context in the UI.
+// ============================================================
+app.get('/observability', requireAuth, (req, res) => {
+  res.render('observability', { title: 'Observability' });
+});
+
+// ============================================================
+// API ROUTES — Elastic APM differentiators
+// ============================================================
+
+// --- Health endpoint (unchanged) ---
 app.get('/api/health', (req, res) => {
   res.json({
     status: 'ok',
     timestamp: new Date().toISOString(),
     uptime: process.uptime(),
   });
+});
+
+// ============================================================
+// /api/metrics — Application metrics endpoint
+// Exposes request counts, error rates, response times, and
+// memory usage. In Elastic, these correlate with APM traces
+// and synthetic runs in the same Kibana dashboard.
+// Competitors can't query this data alongside synthetic
+// results because they use separate data stores.
+// ============================================================
+app.get('/api/metrics', (req, res) => {
+  const mem = process.memoryUsage();
+  res.json({
+    requestCount: appMetrics.requestCount,
+    errorCount: appMetrics.errorCount,
+    avgResponseTime: appMetrics.requestCount > 0
+      ? Math.round(appMetrics.totalResponseTime / appMetrics.requestCount)
+      : 0,
+    uptime: Math.round(process.uptime()),
+    startedAt: appMetrics.startedAt,
+    memory: {
+      heapUsedMB: Math.round(mem.heapUsed / 1048576),
+      heapTotalMB: Math.round(mem.heapTotal / 1048576),
+      rssMB: Math.round(mem.rss / 1048576),
+    },
+    timestamp: new Date().toISOString(),
+  });
+});
+
+// ============================================================
+// /api/trace-demo — THE killer differentiator
+//
+// This endpoint creates multiple custom APM spans that show
+// up as a rich waterfall in Kibana APM. When triggered by a
+// synthetic monitor, the W3C traceparent header links the
+// synthetic run → this transaction → all child spans.
+//
+// No other synthetic monitoring tool provides this level of
+// end-to-end trace correlation out of the box.
+// ============================================================
+app.get('/api/trace-demo', async (req, res) => {
+  try {
+    // Span 1: Simulate fetching products from a data source
+    const products = await new Promise((resolve) => {
+      const span = apm.startSpan('fetch-products', 'db', 'query');
+      const filtered = PRODUCTS.filter((p) => p.category === 'Electronics');
+      setTimeout(() => {
+        if (span) span.end();
+        resolve(filtered);
+      }, 30 + Math.random() * 70); // 30-100ms
+    });
+
+    // Span 2: Compute statistics over the fetched data
+    const stats = await new Promise((resolve) => {
+      const span = apm.startSpan('compute-stats', 'app', 'compute');
+      const prices = products.map((p) => p.price);
+      const result = {
+        count: prices.length,
+        min: Math.min(...prices),
+        max: Math.max(...prices),
+        avg: Math.round((prices.reduce((a, b) => a + b, 0) / prices.length) * 100) / 100,
+        total: Math.round(prices.reduce((a, b) => a + b, 0) * 100) / 100,
+      };
+      setTimeout(() => {
+        if (span) span.end();
+        resolve(result);
+      }, 20 + Math.random() * 30); // 20-50ms
+    });
+
+    // Span 3: Simulate a slow downstream service call
+    const externalResult = await new Promise((resolve) => {
+      const span = apm.startSpan('call-inventory-service', 'external', 'http');
+      setTimeout(() => {
+        if (span) span.end();
+        resolve({ available: true, warehouse: 'us-east-1', checkedAt: new Date().toISOString() });
+      }, 50 + Math.random() * 150); // 50-200ms
+    });
+
+    // Return results with trace context for verification
+    const traceIds = apm.currentTraceIds;
+    res.json({
+      stats,
+      inventory: externalResult,
+      products: products.map((p) => ({ id: p.id, name: p.name, price: p.price })),
+      trace: {
+        traceId: traceIds['trace.id'] || 'apm-inactive',
+        transactionId: traceIds['transaction.id'] || 'apm-inactive',
+        message: 'This trace links the synthetic monitor run to the backend transaction. '
+               + 'View it in Kibana APM → Services → synth-monitor-server → Transactions.',
+      },
+      timestamp: new Date().toISOString(),
+    });
+  } catch (err) {
+    apm.captureError(err);
+    res.status(500).json({ error: 'Internal error', message: err.message });
+  }
 });
 
 // --- Root redirect ---
@@ -291,4 +452,5 @@ app.get('/', (req, res) => {
 // --- Start server ---
 app.listen(PORT, () => {
   console.log(`Synthetic Monitoring Test Server running on http://localhost:${PORT}`);
+  //console.log(`APM agent active: ${apm.isStarted()}`);
 });

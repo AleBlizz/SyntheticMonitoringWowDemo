@@ -13,11 +13,9 @@ const ENVIRONMENTS: Record<string, string> = {
   // Local dev — server running on your machine
   development: 'http://localhost:3000',
 
-  // In-cluster K8s service name (used by the Elastic Agent private location)
-  staging: 'http://synth-monitor-server.synthetic-monitoring.svc.cluster.local:3000',
-
   // External IP / domain of your production deployment
-  production: 'http://35.226.244.170',
+  //production: 'http://35.226.244.170'
+  production: process.env.SYNTH_TARGET_URL || ''
 };
 
 export default (): SyntheticsConfig => {
@@ -38,8 +36,9 @@ export default (): SyntheticsConfig => {
     monitor: {
       tags: ['synthetic-monitoring-demo'],
       schedule: 10,
-      privateLocations: ['my_kubernetes_cluster'],
-      enabled: false
+      //privateLocations: ['my_kubernetes_cluster'],
+      locations: [process.env.MONITOR_PRIVATE_LOCATION || 'germany'],
+      enabled: true
     },
     project: {
       id: 'synthetic-monitoring-demo',

@@ -4,6 +4,8 @@ journey('Login Journey', ({ page, params }) => {
   monitor.use({
     id: 'login-journey',
     schedule: 10,
+    tags: ['auth', 'critical-path', 'user-flow'],
+    screenshots: 'on',
   });
 
   step('Navigate to login page', async () => {

@@ -4,6 +4,8 @@ journey('Checkout Journey', ({ page, params }) => {
   monitor.use({
     id: 'checkout-journey',
     schedule: 10,
+    tags: ['e-commerce', 'checkout', 'critical-path', 'revenue'],
+    screenshots: 'on',
   });
 
   step('Login', async () => {

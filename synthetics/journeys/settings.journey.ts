@@ -4,6 +4,8 @@ journey('Settings Journey', ({ page, params }) => {
   monitor.use({
     id: 'settings-journey',
     schedule: 10,
+    tags: ['user-management', 'form-controls', 'settings'],
+    screenshots: 'only-on-failure',
   });
 
   step('Login', async () => {
